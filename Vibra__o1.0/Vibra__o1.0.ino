@@ -1,46 +1,39 @@
-float media ;
-int total = 0 ;
-int microphone = 'A0' ;
-int viber = 2 ;
-int now ;
-int valores[60];
-int cont = 0;
+int anterior = 0;
+int microphone = A0;
+int viber = 3;
+unsigned long inicioVibracao;
+
+#define DURACAO_VIBRACAO 300
+#define SENSIBILIDADE 100
+#define INTERVALO_LEITURA 20
 
 void setup() {
   // put your setup code here, to run once:
   pinMode(viber, OUTPUT);
   pinMode(microphone, INPUT);
   Serial.begin(9600);
-}
-void updatemedia() {
-  for (int i = 0; i < 60 ; i++) {
-    total = total + valores[i];
-  }
-  media = total / 60;
-
-}
-void limpaValores() {
-  valores[60] = 0 ;
-  
+  // vibrar = map(vibrar, 0, 1023, 0, 255);
 }
 void loop() {
-
-  long mil = millis();
-  if (mil % 1000 == 0 && mil > 0) {
-    if (cont > 59) {
-      limpaValores();
-      cont=1;
-    }
-    valores[cont] = analogRead( microphone );
-    now = analogRead( microphone );
-
-    cont++;
+  int now = analogRead(microphone);
+  Serial.println(now);
+  delay(INTERVALO_LEITURA);
+  if (now > anterior + SENSIBILIDADE) {
+    comecarVibrar();
   }
-  updatemedia();
-  if ( media < now ) {
-    analogWrite( viber, HIGH );
+
+  // determinar se é pra parar
+  if (inicioVibracao > 0 && inicioVibracao + DURACAO_VIBRACAO < millis()) {
+    pararVibrar();
   }
- // Serial.println(total);
-   Serial.println(media);
-   Serial.println(now);
+
+  anterior = now;
 }
+
+void comecarVibrar() {
+  inicioVibracao = millis();
+  digitalWrite(viber, HIGH);
+}
+void pararVibrar() {
+  digitalWrite(viber, LOW);
+  inicioVibracao = 0;
