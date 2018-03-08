@@ -1,0 +1,52 @@
+//Incluir Bibiloteca and bluetooth
+#include "SoftwareSerial.h"
+#include "ArduinoJson";
+SoftwareSerial bluetooth(2, 3);
+
+//
+int anterior = 0;
+int microphone = A0;
+int viber = 5;
+unsigned long inicioVibracao;
+char dados;
+#define DURACAO_VIBRACAO 300
+#define SENSIBILIDADE 100
+#define INTERVALO_LEITURA 20
+
+void setup() {
+  // put your setup code here, to run once:
+  pinMode(viber, OUTPUT);
+  pinMode(microphone, INPUT);
+  Serial.begin(9600);
+  bluetooth.begin(9600);
+}
+void loop() {
+
+  bluetooth.available();
+  int now = analogRead(microphone);
+  if ( dados != -1){
+  //Serial.println(now);
+  Serial.println(dados);
+  comecarVibrar();
+  }
+  delay(INTERVALO_LEITURA);
+  if (now > anterior + SENSIBILIDADE) {
+    comecarVibrar();
+  }
+
+  // determinar se é pra parar
+  if (inicioVibracao > 0 && inicioVibracao + DURACAO_VIBRACAO < millis()) {
+    pararVibrar();
+  }
+
+  anterior = now;
+}
+
+void comecarVibrar() {
+  inicioVibracao = millis();
+  digitalWrite(viber, HIGH);
+}
+void pararVibrar() {
+  digitalWrite(viber, LOW);
+  inicioVibracao = 0;
+}
