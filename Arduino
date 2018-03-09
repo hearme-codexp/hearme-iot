@@ -1,34 +1,28 @@
-//Incluir Bibiloteca and bluetooth
 #include "SoftwareSerial.h"
-#include "ArduinoJson";
-SoftwareSerial bluetooth(2, 3);
-
-//
+#include <ArduinoJson.h>
 int anterior = 0;
 int microphone = A0;
 int viber = 5;
 unsigned long inicioVibracao;
-char dados;
+
 #define DURACAO_VIBRACAO 300
 #define SENSIBILIDADE 100
 #define INTERVALO_LEITURA 20
 
+  StaticJsonBuffer<200> jsonBuffer;
+  JsonObject& root = jsonBuffer.createObject();
+  SoftwareSerial mySerial(2, 3 );
 void setup() {
   // put your setup code here, to run once:
   pinMode(viber, OUTPUT);
   pinMode(microphone, INPUT);
   Serial.begin(9600);
-  bluetooth.begin(9600);
+  bluetooth.begin(115200);
 }
 void loop() {
-
-  bluetooth.available();
+  
   int now = analogRead(microphone);
-  if ( dados != -1){
-  //Serial.println(now);
-  Serial.println(dados);
-  comecarVibrar();
-  }
+  Serial.println(now);
   delay(INTERVALO_LEITURA);
   if (now > anterior + SENSIBILIDADE) {
     comecarVibrar();
