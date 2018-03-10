@@ -1,5 +1,5 @@
 #include "SoftwareSerial.h"
-#include <ArduinoJson.h>
+
 int anterior = 0;
 int microphone = A0;
 int viber = 5;
@@ -8,15 +8,15 @@ unsigned long inicioVibracao;
 #define DURACAO_VIBRACAO 300
 #define SENSIBILIDADE 100
 #define INTERVALO_LEITURA 20
+#define BAUD_RATE 9600
 
-StaticJsonBuffer<100> jsonBuffer;
 SoftwareSerial bluetooth(2, 3);
 void setup()
 {
   pinMode(viber, OUTPUT);
   pinMode(microphone, INPUT);
   Serial.begin(9600);
-  bluetooth.begin(115200);
+  bluetooth.begin(BAUD_RATE);
 }
 void loop()
 {
@@ -39,12 +39,8 @@ void loop()
 
 void enviarHistoricoVibracao()
 {
-  // formato da mensagem pode ser {"v":1}
-  JsonObject &json = jsonBuffer.createObject();
-  json["v"] = 1;
-
-  // a biblioteca ArduinoJson já imprime para uma porta Serial/SoftwareSerial
-  json.printTo(bluetooth);
+      bluetooth.println("[v]=1");
+     
 }
 
 void comecarVibrar()
