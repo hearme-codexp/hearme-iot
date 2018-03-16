@@ -1,7 +1,5 @@
 #include "SoftwareSerial.h"
 //
-
-//
 int anterior = 0;
 int microphone = A0;
 int viber = 5;
@@ -12,7 +10,8 @@ unsigned long inicioVibracao;
 #define SENSIBILIDADE 100
 #define INTERVALO_LEITURA 20
 #define BAUD_RATE 9600
-#define PORCENTAGEM_DE_GIRO 1.3
+#define PORCENTAGEM_DE_GIRO_ALTO 1.2
+#define PORCENTAGEM_DE_GIRO_BAIXO 1.1
 //Media
 const int numReadings = 10;
 
@@ -64,9 +63,10 @@ void loop()
   //Serial.println(total);
   Serial.println(average);
   delay(INTERVALO_LEITURA);
-  if ( (average * PORCENTAGEM_DE_GIRO < now)  && validator == false)
+
+  if ( ( average * PORCENTAGEM_DE_GIRO_ALTO < now )  && validator == false )
   {
-    if ( average > 0 ) {
+    if ( average * PORCENTAGEM_DE_GIRO_BAIXO > 0 ) {
       
       comecarVibrar();
       validator = true;
@@ -80,6 +80,7 @@ void loop()
 
   anterior = now;
 
+  // TODO: calibrar valor abaixo
   if(counter == 100){
     validator = false;
     counter = 0; 
