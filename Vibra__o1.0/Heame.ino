@@ -1,29 +1,28 @@
 #include "SoftwareSerial.h"
-//
-int anterior = 0;
 int microphone = A0;
 int viber = 5;
-
+SoftwareSerial bluetooth(3, 2);
 unsigned long inicioVibracao;
 
 #define DURACAO_VIBRACAO 300
 #define SENSIBILIDADE 100
-#define INTERVALO_LEITURA 20
+#define INTERVALO_LEITURA 10
 #define BAUD_RATE 9600
-#define PORCENTAGEM_DE_GIRO_ALTO 1.2
+#define PORCENTAGEM_DE_GIRO_ALTO 1.15
 #define PORCENTAGEM_DE_GIRO_BAIXO 1.1
+#define THRESHOLD 6
 //Media
-const int numReadings = 10;
+const int numReadings = 50;
 
 int readings[numReadings];
 int readIndex = 0;
 int total = 0;
-int average = 0;
+float average = 0.0;
 int counter = 0;
 bool validator = false;
 //
 
-SoftwareSerial bluetooth(3, 2);
+
 void setup()
 {
   pinMode(viber, OUTPUT);
@@ -44,30 +43,39 @@ void loop()
   counter++;
   ///
   // subtract the last reading:
-  total = total - readings[readIndex];
+  int old = readings[readIndex];
+  total = total - old;
   // read from the sensor:
-  readings[readIndex] = analogRead(microphone);
+  int now = analogRead(microphone);
+  readings[readIndex] = now;
 
   // add the reading to the total:
-  total = total + readings[readIndex];
+  total = total + now;
   // advance to the next position in the array:
-  readIndex = readIndex + 1;
+  readIndex++;
 
   if (readIndex >= numReadings) {
     readIndex = 0;
   }
 
+  float oldAverage = average;
   average = total / numReadings;
-  ///
-  int now = analogRead(microphone);
-  //Serial.println(total);
-  Serial.println(average);
-  delay(INTERVALO_LEITURA);
 
-  if ( ( average * PORCENTAGEM_DE_GIRO_ALTO < now )  && validator == false )
+  float variance = (now - old) * (now - average + old - oldAverage) / (numReadings - 1);
+  float stddev = sqrt(variance);
+
+  /*
+    Serial.print(now);
+    Serial.print(',');
+    Serial.print(average);
+    Serial.print(',');
+  */
+
+  Serial.println(stddev);
+
+  if ( ( stddev > THRESHOLD )  && validator == false )
   {
-    if ( average * PORCENTAGEM_DE_GIRO_BAIXO > 0 ) {
-      
+    if ( average  > 0 ) {
       comecarVibrar();
       validator = true;
     }
@@ -78,13 +86,12 @@ void loop()
     pararVibrar();
   }
 
-  anterior = now;
-
   // TODO: calibrar valor abaixo
-  if(counter == 100){
+  if (counter == 100) {
     validator = false;
-    counter = 0; 
+    counter = 0;
   }
+  delay(INTERVALO_LEITURA);
 }
 
 void enviarHistoricoVibracao()
