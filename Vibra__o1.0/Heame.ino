@@ -1,16 +1,20 @@
 #include "SoftwareSerial.h"
 int microphone = A0;
 int viber = 5;
+
+int led_red = 10;
+int led_green = 9;
+int led_blue = 11;
+
 SoftwareSerial bluetooth(3, 2);
 unsigned long inicioVibracao;
 
 #define DURACAO_VIBRACAO 300
-#define SENSIBILIDADE 100
 #define INTERVALO_LEITURA 10
 #define BAUD_RATE 9600
 #define PORCENTAGEM_DE_GIRO_ALTO 1.15
 #define PORCENTAGEM_DE_GIRO_BAIXO 1.1
-#define THRESHOLD 6
+#define THRESHOLD 3
 //Media
 const int numReadings = 50;
 
@@ -25,6 +29,11 @@ bool validator = false;
 
 void setup()
 {
+  ///Leds
+  pinMode(led_red, OUTPUT);
+  pinMode(led_green, OUTPUT);
+  pinMode(led_blue, OUTPUT);
+  ///
   pinMode(viber, OUTPUT);
   pinMode(microphone, INPUT);
   Serial.begin(9600);
@@ -64,12 +73,6 @@ void loop()
   float variance = (now - old) * (now - average + old - oldAverage) / (numReadings - 1);
   float stddev = sqrt(variance);
 
-  /*
-    Serial.print(now);
-    Serial.print(',');
-    Serial.print(average);
-    Serial.print(',');
-  */
 
   Serial.println(stddev);
 
@@ -104,9 +107,27 @@ void comecarVibrar()
   inicioVibracao = millis();
   digitalWrite(viber, HIGH);
   enviarHistoricoVibracao();
+Led();
+
+  
 }
 void pararVibrar()
 {
   digitalWrite(viber, LOW);
   inicioVibracao = 0;
+   Led_stop();
 }
+
+void Led()
+{
+  analogWrite(led_red, 80);
+  analogWrite(led_green, 20);
+ analogWrite(led_blue, 96); 
+ }
+
+void Led_stop()
+{
+  digitalWrite(led_red, LOW);
+  digitalWrite(led_green, LOW);
+  digitalWrite(led_blue, LOW); 
+ }
